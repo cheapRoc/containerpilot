@@ -23,6 +23,4 @@ ENV CONTAINERPILOT=file:///app-with-consul.json
 # env var interpolation in the command args
 ENV APP_PORT=8000
 
-ENTRYPOINT [ "/bin/containerpilot", \
-             "/usr/local/bin/node", \
-             "/usr/local/bin/http-server", "/srv", "-p", "{{ .APP_PORT }}"]
+ENTRYPOINT [ "/bin/containerpilot" ]

@@ -114,7 +114,7 @@ run_test() {
       log "FAIL: $COMPOSE_PROJECT_NAME"
       echo $COMPOSE_PROJECT_NAME >> "$FAILED"
     fi
-    destroy_test_compose
+    ## destroy_test_compose
   fi
 }
 
@@ -156,7 +156,7 @@ case $COMMAND in
     create_test_fixtures
     run_tests "$1"
     result=$?
-    clean_tests
+    ## clean_tests
     if [ $result -ne 0 ]; then
       banner "Tests Failed!"
       exit 1

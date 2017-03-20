@@ -1,10 +1,14 @@
 {
   "consul": "127.0.0.1:8500",
+  "logging": {
+    "level": "DEBUG"
+  },
   "services": [
     {
       "name": "testenvvar",
       "port": 8500,
       "health": "true",
+      "exec": "env",
       "poll": 10,
       "ttl": 25
     }
