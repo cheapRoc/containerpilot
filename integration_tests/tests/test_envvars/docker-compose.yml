@@ -1,7 +1,5 @@
 test:
   image: cpfix_app
-  environment:
-    - CONTAINERPILOT=file:///etc/containerpilot.json
   volumes:
     - '${CONTAINERPILOT_BIN}:/bin/containerpilot:ro'
     - './containerpilot.json:/etc/containerpilot.json'

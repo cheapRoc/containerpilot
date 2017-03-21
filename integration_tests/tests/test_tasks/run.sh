@@ -62,10 +62,8 @@ fi
 
 rm ${APP_ID}.task3
 
-rm ${APP_ID}.log
+#rm ${APP_ID}.log
 
 result=$PASS
 
-# cleanup
-docker-compose rm -f
 exit $result
