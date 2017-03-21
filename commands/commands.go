@@ -202,6 +202,8 @@ func (c *Command) Kill() {
 }
 
 func (c *Command) CloseLogs() {
-	c.logger.Close()
+	if c != nil && c.logger != nil {
+		c.logger.Close()
+	}
 	return
 }
