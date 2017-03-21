@@ -9,7 +9,7 @@ if [ ! $? -eq 0 ] ; then exit 1 ; fi
 APP_ID="$(docker-compose ps -q app)"
 logs=$(docker logs $APP_ID)
 result=1
-if [[ $logs == *"Loaded config:"* ]]; then
+if [[ $logs == *"loaded config:"* ]]; then
     result=0
 fi
 
