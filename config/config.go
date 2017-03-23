@@ -38,7 +38,7 @@ type Config struct {
 	Checks      []*checks.Config
 	Watches     []*watches.Config
 	Telemetry   *telemetry.Config
-	Server      *control.Server
+	Control     *control.Config
 }
 
 const (
@@ -146,6 +146,12 @@ func LoadConfig(configFlag string) (*Config, error) {
 		return nil, err
 	}
 	cfg.StopTimeout = stopTimeout
+
+	controlConfig, err := control.NewConfig(raw.control)
+	if err != nil {
+		return nil, fmt.Errorf("unable to parse control: %v", err)
+	}
+	cfg.Control = controlConfig
 
 	serviceConfigs, err := services.NewConfigs(raw.services, disc)
 	if err != nil {
@@ -281,11 +287,13 @@ func decodeConfig(configMap map[string]interface{}, result *rawConfig) error {
 	}
 	result.stopTimeout = stopTimeout
 	result.logConfig = &logConfig
+	result.control = configMap["control"]
 	result.services = decodeArray(configMap["services"])
 	result.watches = decodeArray(configMap["backends"])
 	result.telemetry = configMap["telemetry"]
 
 	delete(configMap, "logging")
+	delete(configMap, "control")
 	delete(configMap, "stopTimeout")
 	delete(configMap, "services")
 	delete(configMap, "backends")

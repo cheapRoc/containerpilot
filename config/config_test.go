@@ -14,6 +14,9 @@ come together as we expect and also check things like env var interpolation.
 
 var testJSON = `{
 	"consul": "consul:8500",
+	"control": {
+		"socket": "/var/run/cp3-test.sock"
+	},
 	"stopTimeout": 5,
 	"services": [
 			{
@@ -108,6 +111,21 @@ func TestValidConfigHealthChecks(t *testing.T) {
 	assertEqual(t, check1.Name, "serviceB.check", "expected '%v' for check1.Name, but got '%v'")
 	assertEqual(t, check1.Poll, 20, "expected '%v' for check1.Poll, but got '%v'")
 	assertEqual(t, check1.Timeout, "2s", "expected '%v' for check1.Timeout, but got '%v'")
+}
+
+// checks.Config
+func TestValidConfigControl(t *testing.T) {
+	os.Setenv("TEST", "HELLO")
+	cfg, err := LoadConfig(testJSON)
+	if err != nil {
+		t.Fatalf("unexpected error in LoadConfig: %v", err)
+	}
+
+	if cfg.Control == nil {
+		t.Fatalf("expected control config to be parsed")
+	}
+
+	assertEqual(t, cfg.Control.Socket, "/var/run/cp3-test.sock", "expected '%v' for control.socket, but got '%v'")
 }
 
 // services.Config
