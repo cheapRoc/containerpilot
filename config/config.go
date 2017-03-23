@@ -12,6 +12,7 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/joyent/containerpilot/checks"
+	"github.com/joyent/containerpilot/control"
 	"github.com/joyent/containerpilot/discovery"
 	"github.com/joyent/containerpilot/services"
 	"github.com/joyent/containerpilot/telemetry"
@@ -25,6 +26,7 @@ type rawConfig struct {
 	services    []interface{}
 	watches     []interface{}
 	telemetry   interface{}
+	control     interface{}
 }
 
 // Config contains the parsed config elements
@@ -36,6 +38,7 @@ type Config struct {
 	Checks      []*checks.Config
 	Watches     []*watches.Config
 	Telemetry   *telemetry.Config
+	Server      *control.Server
 }
 
 const (
