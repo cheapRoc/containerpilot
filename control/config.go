@@ -13,10 +13,6 @@ const (
 // Config represents the location on the file system which serves the Unix
 // control socket file.
 type Config struct {
-// 	Control  *NestedConfig `mapstructure:"control"`
-// }
-
-// type NestedConfig struct {
 	Socket    string      `mapstructure:"socket"`
 }
 
