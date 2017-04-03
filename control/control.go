@@ -22,7 +22,6 @@ const (
 type HTTPServer struct {
 	mux        *http.ServeMux
 	addr       net.UnixAddr
-	listening  bool
 	lock       sync.RWMutex
 }
 
@@ -43,14 +42,11 @@ func NewHTTPServer(cfg *Config) (*HTTPServer, error) {
 	return &HTTPServer{
 		mux: mux,
 		addr: addr,
-		listening: false,
 	}, nil
 }
 
-var listener net.Listener
-
 // Serve starts serving the control server
-func (s *HTTPServer) Serve() {
+func (s *HTTPServer) Serve(s interface{}) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
@@ -65,19 +61,16 @@ func (s *HTTPServer) Serve() {
 		log.Fatalf("error serving socket at %s: %v", s.addr.String(), err)
 	}
 
-	listener = ln
-	s.listening = true
-
 	go func() {
 		log.Infof("control: Serving at %s", s.addr.String())
 		log.Fatal(http.Serve(ln, s.mux))
-		log.Debugf("control: Stopped serving at %s", s.addr.String())
+		log.Debugf("control: Stopped at %s", s.addr.String())
 	}()
 }
 
 // Shutdown shuts down the control server
 func (s *HTTPServer) Shutdown() {
-	s.listening = false
+	s.mux.Shutdown()
 	log.Debug("control: Shutdown received but currently a no-op")
 }
 

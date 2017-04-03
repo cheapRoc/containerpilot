@@ -154,7 +154,7 @@ func (a *App) Run() {
 		reapChildren()
 	}
 	for {
-		a.ControlServer.Serve()
+		a.ControlServer.Serve(a)
 		a.Bus = events.NewEventBus()
 		a.handleSignals()
 		a.handlePolling()
@@ -210,7 +210,7 @@ func (a *App) Terminate() {
 	defer a.signalLock.Unlock()
 	a.Bus.Shutdown()
 	if a.StopTimeout > 0 {
-		time.AfterFunc(time.Duration(a.StopTimeout)*time.Second, func() {
+		time.AfterFunc(time.Duration(a.StopTimeout) * time.Second, func() {
 			for _, service := range a.Services {
 				log.Infof("killing processes for service %#v", service.Name)
 				service.Kill()
@@ -222,6 +222,7 @@ func (a *App) Terminate() {
 		log.Infof("killing processes for service %#v", service.Name)
 		service.Kill()
 	}
+	a.ControlServer.Shutdown()
 }
 
 // Reload will set the 'reload' flag on our event loop and then shut it
