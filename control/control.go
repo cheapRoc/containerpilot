@@ -54,11 +54,10 @@ func (s *HTTPServer) Serve() {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
-	// ref https://github.com/joyent/containerpilot/pull/165
-	if listener != nil {
-		return
+	es := GetEndpoints()
+	for _, e := range es {
+		s.mux.HandleFunc(e.Path, e.Handler)
 	}
-
 	s.mux.HandleFunc("/v3/env", s.getEnvHandler)
 
 	ln, err := net.Listen(s.addr.Network(), s.addr.String())
