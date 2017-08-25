@@ -219,10 +219,10 @@ func TestJobMaintenance(t *testing.T) {
 		job.setStatus(startingState)
 		job.Subscribe(bus)
 		job.Register(bus)
-		ctx, cancel := context.WithCancel(context.Background())
+		ctx := context.Background()
 		job.Run(ctx)
-		job.Publish(event)
-		cancel()
+		bus.Publish(event)
+		bus.Publish(events.QuitByTest)
 		bus.Wait()
 		return job.GetStatus()
 	}
