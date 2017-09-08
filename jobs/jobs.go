@@ -124,7 +124,7 @@ func (job *Job) Kill() {
 }
 
 // Run executes the event loop for the Job
-func (job *Job) Run(pctx context.Context) {
+func (job *Job) Run(pctx context.Context, completedCh chan bool) {
 	ctx, cancel := context.WithCancel(pctx)
 
 	if job.frequency > 0 {
@@ -144,7 +144,10 @@ func (job *Job) Run(pctx context.Context) {
 	}
 
 	go func() {
-		defer job.cleanup(ctx, cancel)
+		defer func() {
+			job.cleanup(ctx, cancel)
+			completedCh <- true
+		}()
 		for {
 			select {
 			case event, ok := <-job.Rx:
@@ -368,6 +371,7 @@ func (job *Job) cleanup(ctx context.Context, cancel context.CancelFunc) {
 	}
 	job.Unsubscribe() // deregister from events
 	job.Unregister()
+	job.setStatus(statusCompleted)
 	job.Publish(events.Event{Code: events.Stopped, Source: job.Name})
 }
 
