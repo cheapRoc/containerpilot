@@ -100,11 +100,34 @@ func getEnvVarNameFromService(service string) string {
 func (a *App) Run() {
 	for {
 		ctx, cancel := context.WithCancel(context.Background())
-		a.handleSignals(cancel)
 
+		// This provides an escape hatch for shutting down after all jobs have
+		// completed. Each time a job completes, during its cleanup func, it
+		// will set it's status to `statusCompleted` (6). Then it'll send `true`
+		// through this channel to wake up this goroutine, check all jobs for
+		// completion, and utilize the context cancel func for shutting down all
+		// remaining goroutines running the control server and telemetry server.
+		completedCh := make(chan bool)
+		go func() {
+			defer cancel()
+			for {
+				<-completedCh
+				quit := true
+				for _, job := range a.Jobs {
+					if job.Status != 6 {
+						quit = false
+					}
+				}
+				if quit == true {
+					return
+				}
+			}
+		}()
+
+		a.handleSignals(cancel)
 		a.Bus = events.NewEventBus()
 		a.ControlServer.Run(ctx, a.Bus)
-		a.runTasks(ctx)
+		a.runTasks(ctx, completedCh)
 
 		if !a.Bus.Wait() {
 			if a.StopTimeout > 0 {
@@ -123,6 +146,7 @@ func (a *App) Run() {
 			break
 		}
 		cancel()
+		close(completedCh)
 	}
 }
 
@@ -153,7 +177,7 @@ func (a *App) reload() error {
 
 // HandlePolling sets up polling functions and write their quit channels
 // back to our config
-func (a *App) runTasks(ctx context.Context) {
+func (a *App) runTasks(ctx context.Context, completedCh chan bool) {
 	// we need to subscribe to events before we Run all the jobs
 	// to avoid races where a job finishes and fires events before
 	// other jobs are even subscribed to listen for them.
@@ -162,7 +186,7 @@ func (a *App) runTasks(ctx context.Context) {
 		job.Register(a.Bus)
 	}
 	for _, job := range a.Jobs {
-		job.Run(ctx)
+		job.Run(ctx, completedCh)
 	}
 	for _, watch := range a.Watches {
 		watch.Run(ctx, a.Bus)
