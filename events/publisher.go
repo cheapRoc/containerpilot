@@ -15,27 +15,22 @@ type Publisher struct {
 }
 
 // Publish publishes an Event across the Publisher's EventBus
-func (p *Publisher) Publish(event Event) {
-	p.Bus.Publish(event)
+func (pub *Publisher) Publish(event Event) {
+	pub.Bus.Publish(event)
 }
 
 // Register registers the Publisher with the EventBus.
-func (p *Publisher) Register(bus *EventBus) {
-	p.Bus = bus
-	bus.Register(p)
+func (pub *Publisher) Register(bus *EventBus) {
+	pub.Bus = bus
+	bus.Register(pub)
 }
 
 // Unregister unregisters the Publisher from the EventBus.
-func (p *Publisher) Unregister() {
-	p.Bus.Unregister(p)
+func (pub *Publisher) Unregister() {
+	pub.Bus.Unregister(pub)
 }
 
 // Wait blocks for the EventBus wait group counter to count down to zero.
-func (p *Publisher) Wait() {
-	p.Bus.done.Wait()
+func (pub *Publisher) Wait() {
+	pub.Bus.done.Wait()
 }
-
-// Quit blocks for the EventBus wait group counter to count down to zero.
-// func (p *Publisher) Quit() {
-// 	p.Bus.done.Wait()
-// }

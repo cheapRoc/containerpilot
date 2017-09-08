@@ -16,22 +16,22 @@ type Subscriber struct {
 }
 
 // Subscribe subscribes a subscriber to the EventBus
-func (s *Subscriber) Subscribe(bus *EventBus) {
-	s.Bus = bus
-	bus.Subscribe(s)
+func (sub *Subscriber) Subscribe(bus *EventBus) {
+	sub.Bus = bus
+	bus.Subscribe(sub)
 }
 
 // Unsubscribe unsubscribes the subscriber from the EventBus.
-func (s *Subscriber) Unsubscribe() {
-	s.Bus.Unsubscribe(s)
+func (sub *Subscriber) Unsubscribe() {
+	sub.Bus.Unsubscribe(sub)
 }
 
 // Receive receives an Event through the receive channel.
-func (s *Subscriber) Receive(event Event) {
-	s.Rx <- event
+func (sub *Subscriber) Receive(event Event) {
+	sub.Rx <- event
 }
 
 // Wait waits for the subscriber's EventBus to complete its wait group.
-func (s *Subscriber) Wait() {
-	s.Bus.done.Wait()
+func (sub *Subscriber) Wait() {
+	sub.Bus.done.Wait()
 }
