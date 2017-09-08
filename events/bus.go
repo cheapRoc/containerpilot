@@ -76,9 +76,15 @@ func NewEventBus() *EventBus {
 	for i := range buf {
 		buf[i] = Event{}
 	}
-	bus := &EventBus{registry: reg, lock: lock, reload: false,
-		buf: buf, head: -1, tail: 0}
-	return bus
+
+	return &EventBus{
+		registry: reg,
+		lock:     lock,
+		buf:      buf,
+		head:     -1,
+		tail:     0,
+		reload:   false,
+	}
 }
 
 // Register the Publisher for all Events
@@ -101,12 +107,7 @@ func (bus *EventBus) Subscribe(subscriber EventSubscriber) {
 	defer bus.lock.Unlock()
 	sub := subscriber.(*Subscriber)
 	bus.registry[sub] = true
-
-	// internal subscribers like the control socket and telemetry server
-	// will never unregister from events, but we want to be able to exit
-	// if len(isInternal) == 0 || !isInternal[0] {
 	bus.done.Add(1)
-	// }
 }
 
 // Unsubscribe the Subscriber from all Events
@@ -117,9 +118,7 @@ func (bus *EventBus) Unsubscribe(subscriber EventSubscriber) {
 	if _, ok := bus.registry[sub]; ok {
 		delete(bus.registry, sub)
 	}
-	// if len(isInternal) == 0 || !isInternal[0] {
 	bus.done.Done()
-	// }
 }
 
 // Publish an Event to all Subscribers
@@ -156,5 +155,6 @@ func (bus *EventBus) Wait() bool {
 	bus.done.Wait()
 	bus.lock.RLock()
 	defer bus.lock.RUnlock()
+
 	return bus.reload
 }
