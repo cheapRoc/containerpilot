@@ -105,27 +105,32 @@ func (a *App) Run() {
 		// completed. Each time a job completes, during its cleanup func, it
 		// will set it's status to `statusCompleted` (6). Then it'll send `true`
 		// through this channel to wake up this goroutine, check all jobs for
-		// completion, and utilize the context cancel func for shutting down all
-		// remaining goroutines running the control server and telemetry server.
+		// completion, and unregister the control server if appropriate.
 		completedCh := make(chan bool)
 		go func() {
-			defer cancel()
 			for {
-				<-completedCh
-				quit := true
-				for _, job := range a.Jobs {
-					if job.Status != 6 {
-						quit = false
+				select {
+				case <-completedCh:
+					quit := true
+					for _, job := range a.Jobs {
+						if job.Status != 6 {
+							quit = false
+						}
 					}
-				}
-				if quit == true {
+					if quit {
+						if a.ControlServer != nil {
+							a.ControlServer.Unregister()
+						}
+						return
+					}
+				case <-ctx.Done():
 					return
 				}
 			}
 		}()
 
-		a.handleSignals(cancel)
 		a.Bus = events.NewEventBus()
+		a.handleSignals(cancel)
 		a.ControlServer.Run(ctx, a.Bus)
 		a.runTasks(ctx, completedCh)
 
