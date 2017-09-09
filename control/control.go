@@ -41,7 +41,7 @@ type HTTPServer struct {
 
 	http.Server
 	events.Publisher
-	events.Subscriber
+	// events.Subscriber
 }
 
 // NewHTTPServer initializes a new control server for manipulating
@@ -159,6 +159,7 @@ func (srv *HTTPServer) Stop() error {
 	}
 
 	srv.Unregister()
+	// srv.Unsubscribe()
 	log.Debug("control: completed graceful shutdown of control server")
 	return nil
 }
