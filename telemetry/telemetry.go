@@ -93,7 +93,6 @@ func (t *Telemetry) listenWithRetry() net.Listener {
 // Stop shuts down the telemetry service
 func (t *Telemetry) Stop(pctx context.Context) {
 	log.Debug("telemetry: stopping server")
-	// ctx, cancel := context.WithTimeout(pctx, 500*time.Millisecond)
 	ctx, cancel := context.WithCancel(pctx)
 	defer cancel()
 	if err := t.Shutdown(ctx); err != nil {

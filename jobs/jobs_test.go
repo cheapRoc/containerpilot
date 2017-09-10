@@ -14,6 +14,7 @@ import (
 
 func TestJobRunSafeClose(t *testing.T) {
 	bus := events.NewEventBus()
+	stopCh := make(chan bool)
 	cfg := &Config{
 		Name: "myjob",
 		Exec: "sleep 10",
@@ -23,7 +24,7 @@ func TestJobRunSafeClose(t *testing.T) {
 	job.Subscribe(bus)
 	job.Register(bus)
 	ctx, cancel := context.WithCancel(context.Background())
-	job.Run(ctx)
+	job.Run(ctx, stopCh)
 	bus.Publish(events.GlobalStartup)
 	cancel()
 	bus.Wait()
@@ -49,6 +50,7 @@ func TestJobRunSafeClose(t *testing.T) {
 // A Job should timeout if not started before the startupTimeout
 func TestJobRunStartupTimeout(t *testing.T) {
 	bus := events.NewEventBus()
+	stopCh := make(chan bool)
 	cfg := &Config{Name: "myjob", Exec: "true",
 		When: &WhenConfig{Source: "never", Once: "startup", Timeout: "100ms"}}
 	cfg.Validate(noop)
@@ -56,7 +58,7 @@ func TestJobRunStartupTimeout(t *testing.T) {
 	job.Subscribe(bus)
 	job.Register(bus)
 	ctx, cancel := context.WithCancel(context.Background())
-	job.Run(ctx)
+	job.Run(ctx, stopCh)
 	job.Publish(events.GlobalStartup)
 
 	time.Sleep(200 * time.Millisecond)
@@ -86,6 +88,7 @@ func TestJobRunStartupTimeout(t *testing.T) {
 // A Job should not timeout if started before the startupTimeout
 func TestJobRunStartupNoTimeout(t *testing.T) {
 	bus := events.NewEventBus()
+	stopCh := make(chan bool)
 	cfg := &Config{Name: "myjob", Exec: "sleep 5",
 		When: &WhenConfig{Timeout: "500ms"}}
 	cfg.Validate(noop)
@@ -95,7 +98,7 @@ func TestJobRunStartupNoTimeout(t *testing.T) {
 	job.Subscribe(bus)
 	job.Register(bus)
 	ctx, cancel := context.WithCancel(context.Background())
-	job.Run(ctx)
+	job.Run(ctx, stopCh)
 	job.Publish(events.GlobalStartup)
 
 	time.Sleep(1000 * time.Millisecond)
@@ -124,6 +127,7 @@ func TestJobRunStartupNoTimeout(t *testing.T) {
 func TestJobRunRestarts(t *testing.T) {
 	runRestartsTest := func(restarts interface{}, expected int) {
 		bus := events.NewEventBus()
+		stopCh := make(chan bool)
 		cfg := &Config{
 			Name:            "myjob",
 			whenEvent:       events.GlobalStartup,
@@ -136,7 +140,7 @@ func TestJobRunRestarts(t *testing.T) {
 
 		job.Subscribe(bus)
 		job.Register(bus)
-		job.Run(context.Background())
+		job.Run(context.Background(), stopCh)
 		job.Publish(events.GlobalStartup)
 		time.Sleep(100 * time.Millisecond) // TODO: we can't force this, right?
 		exitOk := events.Event{Code: events.ExitSuccess, Source: "myjob"}
@@ -161,7 +165,7 @@ func TestJobRunRestarts(t *testing.T) {
 
 func TestJobRunPeriodic(t *testing.T) {
 	bus := events.NewEventBus()
-
+	stopCh := make(chan bool)
 	cfg := &Config{
 		Name: "myjob",
 		Exec: []string{"./testdata/test.sh", "doStuff", "runPeriodicTest"},
@@ -178,7 +182,7 @@ func TestJobRunPeriodic(t *testing.T) {
 	job.Subscribe(bus)
 	job.Register(bus)
 	ctx, cancel := context.WithCancel(context.Background())
-	job.Run(ctx)
+	job.Run(ctx, stopCh)
 	job.Publish(events.GlobalStartup)
 	exitOk := events.Event{Code: events.ExitSuccess, Source: "myjob"}
 	exitFail := events.Event{Code: events.ExitFailed, Source: "myjob"}
@@ -204,6 +208,7 @@ func TestJobRunPeriodic(t *testing.T) {
 func TestJobMaintenance(t *testing.T) {
 	testFunc := func(t *testing.T, startingState JobStatus, event events.Event) JobStatus {
 		bus := events.NewEventBus()
+		stopCh := make(chan bool)
 		cfg := &Config{
 			Name: "myjob",
 			Exec: "true",
@@ -220,7 +225,7 @@ func TestJobMaintenance(t *testing.T) {
 		job.Subscribe(bus)
 		job.Register(bus)
 		ctx := context.Background()
-		job.Run(ctx)
+		job.Run(ctx, stopCh)
 		bus.Publish(event)
 		bus.Publish(events.QuitByTest)
 		bus.Wait()

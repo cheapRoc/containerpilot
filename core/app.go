@@ -113,14 +113,12 @@ func (a *App) Run() {
 				case <-completedCh:
 					quit := true
 					for _, job := range a.Jobs {
-						if job.Status != 6 {
+						if !job.IsComplete {
 							quit = false
 						}
 					}
 					if quit {
-						if a.ControlServer != nil {
-							a.ControlServer.Unregister()
-						}
+						cancel()
 						return
 					}
 				case <-ctx.Done():
