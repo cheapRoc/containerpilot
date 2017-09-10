@@ -51,6 +51,9 @@ type Job struct {
 	restartsRemain int
 	frequency      time.Duration
 
+	// completed
+	IsComplete bool
+
 	events.Subscriber
 	events.Publisher
 }
@@ -114,6 +117,10 @@ func (job *Job) setStatus(status JobStatus) {
 	if job.Status != statusAlwaysHealthy {
 		job.Status = status
 	}
+}
+
+func (job *Job) setComplete() {
+	job.IsComplete = true
 }
 
 // Kill sends SIGTERM to the Job's executable, if any
@@ -371,7 +378,7 @@ func (job *Job) cleanup(ctx context.Context, cancel context.CancelFunc) {
 	}
 	job.Unsubscribe() // deregister from events
 	job.Unregister()
-	job.setStatus(statusCompleted)
+	job.setComplete()
 	job.Publish(events.Event{Code: events.Stopped, Source: job.Name})
 }
 

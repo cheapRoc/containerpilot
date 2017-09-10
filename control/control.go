@@ -41,7 +41,6 @@ type HTTPServer struct {
 
 	http.Server
 	events.Publisher
-	// events.Subscriber
 }
 
 // NewHTTPServer initializes a new control server for manipulating
@@ -54,7 +53,6 @@ func NewHTTPServer(cfg *Config) (*HTTPServer, error) {
 		return nil, fmt.Errorf("control: validate failed with %s", err)
 	}
 
-	// srv.InitRx()
 	return srv, nil
 }
 
@@ -118,7 +116,6 @@ func (srv *HTTPServer) Start(cancel context.CancelFunc) {
 		srv.Serve(ln)
 		log.Debugf("control: stopped serving at %s", srv.Addr)
 	}()
-
 }
 
 // on a reload we can't guarantee that the control server will be shut down
@@ -159,7 +156,6 @@ func (srv *HTTPServer) Stop() error {
 	}
 
 	srv.Unregister()
-	// srv.Unsubscribe()
 	log.Debug("control: completed graceful shutdown of control server")
 	return nil
 }

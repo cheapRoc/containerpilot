@@ -41,6 +41,7 @@ func getSignalTestConfig(t *testing.T) *App {
 // by this same test, but that we don't have a separate unit test
 // because they'll interfere with each other's state.
 func TestTerminateSignal(t *testing.T) {
+	stopCh := make(chan bool)
 	app := getSignalTestConfig(t)
 	bus := app.Bus
 	ctx, cancel := context.WithCancel(context.Background())
@@ -49,7 +50,7 @@ func TestTerminateSignal(t *testing.T) {
 		job.Register(bus)
 	}
 	for _, job := range app.Jobs {
-		job.Run(ctx)
+		job.Run(ctx, stopCh)
 	}
 	app.Terminate()
 	cancel()
