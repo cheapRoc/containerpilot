@@ -103,9 +103,11 @@ func (a *App) Run() {
 
 		// This provides an escape hatch for shutting down after all jobs have
 		// completed. Each time a job completes, during its cleanup func, it
-		// will set it's status to `statusCompleted` (6). Then it'll send `true`
-		// through this channel to wake up this goroutine, check all jobs for
-		// completion, and unregister the control server if appropriate.
+		// will be set `IsComplete` to `true`. Then it'll send `true` through
+		// this channel to wake up this goroutine, check all jobs for
+		// `IsComplete`, and shutdown ContainerPilot if all jobs are
+		// completed. This is because ContainerPilot is NOT a server and must
+		// shut down when no longer required (i.e. process containers).
 		completedCh := make(chan bool)
 		go func() {
 			for {
