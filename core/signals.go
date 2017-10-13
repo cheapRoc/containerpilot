@@ -20,6 +20,8 @@ func (a *App) handleSignals(cancel context.CancelFunc) {
 			case syscall.SIGTERM:
 				a.Terminate()
 				break
+			case syscall.SIGHUP, syscall.SIGUSR2:
+				a.Signal(sig)
 			}
 		}
 		cancel()
