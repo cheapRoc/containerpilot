@@ -8,7 +8,7 @@ import (
 )
 
 // HandleSignals listens for and captures signals used for orchestration
-func (a *App) handleSignals(cancel context.CancelFunc) {
+func (a *App) handleSignals(ctx context.Context, cancel context.CancelFunc) {
 	recvSig := make(chan os.Signal, 1)
 	signal.Notify(recvSig,
 		syscall.SIGTERM,
@@ -32,6 +32,7 @@ func (a *App) handleSignals(cancel context.CancelFunc) {
 			}
 		}
 		cancel()
+		<-ctx.Done()
 	}()
 }
 
