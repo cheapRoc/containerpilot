@@ -1,0 +1,44 @@
+{
+  consul: "consul:8500",
+  jobs: [
+    {
+      name: "pjob",
+      port: 8080,
+      exec: "/bin/pjob start",
+      restarts: "unlimited",
+      health: {
+        exec: "curl --fail -s http://127.0.0.1:8080",
+        interval: 2,
+        ttl: 10,
+        timeout: "10s"
+      },
+    },
+    {
+      name: "watchedjob",
+      port: 3001,
+      exec: "tail -F",
+      health: {
+        exec: "true",
+        interval: 20,
+        ttl: 10
+      }
+    },
+    {
+      name: "send-sighup-a",
+      exec: "pkill -SIGHUP pjob",
+      when: {
+        source: "watch.watchedjob",
+        each: "changed"
+      }
+    },
+  ],
+  watches: [
+    {
+      name: "watchedjob",
+      interval: 2
+    }
+  ],
+  telemetry: {
+    port: 9090
+  }
+}
