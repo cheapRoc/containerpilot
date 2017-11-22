@@ -239,7 +239,7 @@ func (cfg *Config) validateExec() error {
 		// periodic tasks require a timeout
 		cfg.execTimeout = cfg.freqInterval
 	}
-	if cfg.ExecTimeout != "" {
+	if cfg.ExecTimeout != "" && cfg.ExecTimeout != "never" {
 		execTimeout, err := timing.GetTimeout(cfg.ExecTimeout)
 		if err != nil {
 			return fmt.Errorf("unable to parse job[%s].timeout '%s': %v",
@@ -253,6 +253,10 @@ func (cfg *Config) validateExec() error {
 		}
 		cfg.execTimeout = execTimeout
 	}
+	if cfg.ExecTimeout == "never" {
+		cfg.execTimeout = time.Duration(0)
+	}
+
 	if cfg.Exec != nil {
 		fields := log.Fields{"job": cfg.Name}
 		if cfg.Logging != nil && cfg.Logging.Raw {
